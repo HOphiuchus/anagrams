@@ -8,11 +8,17 @@ import java.util.stream.Collectors;
 
 public class AnagramUtil {
 
+    private static final String NON_ALPHA_NUMBER_PATTERN = "[^a-zA-Z0-9]";
     private static final Logger logger = LoggerFactory.getLogger(AnagramUtil.class);
-
     // can be replaced with ConcurrentHashMap if thread safety is required
     private static final Map<String, List<String>> anagramMap = new HashMap<>();
 
+    private AnagramUtil() {
+    }
+
+    public static Map<String, List<String>> getAnagramMap() {
+        return anagramMap;
+    }
 
     public static void checkAndStoreAnagram(String str1, String str2) {
         if (str1.isEmpty() || str2.isEmpty()) {
@@ -28,9 +34,14 @@ public class AnagramUtil {
         }
     }
 
-    private static boolean areAnagrams(String str1, String str2) {
-        char[] arr1 = str1.replaceAll("[^a-zA-Z0-9]", "").toCharArray();
-        char[] arr2 = str2.replaceAll("[^a-zA-Z0-9]", "").toCharArray();
+    static boolean areAnagrams(String str1, String str2) {
+        str1 = str1.replaceAll(NON_ALPHA_NUMBER_PATTERN, "");
+        str2 = str2.replaceAll(NON_ALPHA_NUMBER_PATTERN, "");
+        if (str1.isEmpty() || str2.isEmpty()) {
+            return false;
+        }
+        char[] arr1 = str1.toCharArray();
+        char[] arr2 = str2.toCharArray();
         Arrays.sort(arr1);
         Arrays.sort(arr2);
         return Arrays.equals(arr1, arr2);
@@ -48,20 +59,23 @@ public class AnagramUtil {
         if (anagramMap.containsKey(sortedKey)) {
             if (anagramMap.get(sortedKey).contains(str)) {
                 logger.info("** [{}] FOUND in anagrams", str);
-                logger.info("** Anagrams for [{}]:{}", str, anagramMap.get(sortedKey).stream().map(x -> "[" + x + "]").collect(Collectors.joining()));
+                if (logger.isInfoEnabled()) {
+                    logger.info("** Anagrams for [{}]:{}", str, anagramMap.get(sortedKey).stream().map(x -> "[" + x + "]").collect(Collectors.joining()));
+                }
             } else {
                 logger.info("** [{}] NOT found in anagrams", str);
-                logger.info("** Anagrams for [{}]:{}", str, anagramMap.get(sortedKey).stream().filter(x -> !x.equals(str)).map(x -> "[" + x + "]").collect(Collectors.joining()));
+                if (logger.isInfoEnabled()) {
+                    logger.info("** Anagrams for [{}]:{}", str, anagramMap.get(sortedKey).stream().filter(x -> !x.equals(str)).map(x -> "[" + x + "]").collect(Collectors.joining()));
+                }
             }
         } else {
             logger.info("No anagrams found for [{}].", str);
         }
-
     }
 
     // Sort the characters in a string alphabetically
     private static String sortAndFormatString(String str) {
-        str = str.replaceAll("[^a-zA-Z0-9]", "");
+        str = str.replaceAll(NON_ALPHA_NUMBER_PATTERN, "");
         char[] chars = str.toCharArray();
         Arrays.sort(chars);
         return new String(chars);
